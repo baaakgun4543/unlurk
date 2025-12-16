@@ -12,14 +12,13 @@
   <a href="#demo">Demo</a> •
   <a href="#installation">Installation</a> •
   <a href="#usage">Usage</a> •
-  <a href="#how-it-works">How it Works</a> •
-  <a href="#cloud">Cloud</a>
+  <a href="#how-it-works">How it Works</a>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/npm/v/unlurk" alt="npm version" />
-  <img src="https://img.shields.io/github/stars/unlurk/unlurk?style=social" alt="GitHub stars" />
-  <img src="https://img.shields.io/github/license/unlurk/unlurk" alt="License" />
+  <img src="https://img.shields.io/github/stars/baaakgun4543/unlurk?style=social" alt="GitHub stars" />
+  <img src="https://img.shields.io/github/license/baaakgun4543/unlurk" alt="License" />
 </p>
 
 ---
@@ -54,12 +53,6 @@ After:   [I've been dealing with      ] → 😮 → [Post]
 
 ---
 
-## Demo
-
-🔗 **[Try it live →](https://unlurk.dev/demo)**
-
----
-
 ## Installation
 
 ```bash
@@ -76,13 +69,15 @@ Or via CDN:
 
 ## Usage
 
-### Basic
+### Basic (OpenAI)
 
 ```javascript
 import Unlurk from 'unlurk';
 
 Unlurk.init({
-  apiKey: 'your-api-key', // Get one at unlurk.dev
+  provider: 'openai',
+  apiKey: process.env.OPENAI_API_KEY,
+  model: 'gpt-4o-mini',
 });
 
 Unlurk.enhance('#comment-input');
@@ -102,19 +97,29 @@ Unlurk.enhance('#comment-input', {
 });
 ```
 
-### Self-Hosted (Bring Your Own LLM)
+### Other Providers
 
 ```javascript
-import Unlurk from 'unlurk';
-
+// Anthropic Claude
 Unlurk.init({
-  provider: 'openai', // or 'anthropic', 'ollama', 'custom'
-  apiKey: process.env.OPENAI_API_KEY,
-  model: 'gpt-4o-mini',
+  provider: 'anthropic',
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  model: 'claude-3-haiku-20240307',
 });
 
-Unlurk.enhance('#comment-input', {
-  context: { ... }
+// Local Ollama
+Unlurk.init({
+  provider: 'ollama',
+  model: 'llama3.2',
+  baseUrl: 'http://localhost:11434',
+});
+
+// Custom provider
+Unlurk.init({
+  generateFn: async (prompt, context) => {
+    // Your custom LLM logic
+    return 'Generated draft...';
+  },
 });
 ```
 
@@ -167,11 +172,9 @@ Once they get their first reply or like, they're hooked.
 
 ```javascript
 Unlurk.init({
-  // Required for Cloud, optional for self-hosted
-  apiKey: 'your-api-key',
-
-  // Self-hosted LLM options
+  // LLM Provider (required)
   provider: 'openai',        // 'anthropic', 'ollama', 'custom'
+  apiKey: 'your-api-key',
   model: 'gpt-4o-mini',
   baseUrl: 'http://localhost:11434', // for Ollama
 
@@ -180,7 +183,7 @@ Unlurk.init({
   delay: 500,                // ms before generating
   showEditButton: true,
   showPostButton: true,
-  
+
   // Styling
   theme: 'light',            // 'light', 'dark', 'auto'
   position: 'inline',        // 'inline', 'overlay'
@@ -215,21 +218,6 @@ function CommentBox() {
   );
 }
 ```
-
----
-
-## Cloud vs Self-Hosted
-
-|  | Self-Hosted | Unlurk Cloud |
-|--|-------------|--------------|
-| **Price** | Free | $29/mo |
-| **LLM** | Bring your own | Included |
-| **Setup** | You manage | One line |
-| **Analytics** | DIY | Dashboard |
-| **Fine-tuning** | Manual | Auto-optimized |
-| **Support** | Community | Priority |
-
-**[Get Cloud API Key →](https://unlurk.dev)**
 
 ---
 
@@ -289,21 +277,6 @@ context: {
 
 ---
 
-## Analytics (Cloud)
-
-Track what matters:
-
-- **Lurker → Contributor rate**
-- **Draft acceptance rate** (posted as-is vs edited)
-- **Post-to-engagement correlation**
-- **Retention impact**
-
-<p align="center">
-  <img src="assets/dashboard.png" alt="Analytics Dashboard" width="600" />
-</p>
-
----
-
 ## Privacy & Ethics
 
 **Unlurk is transparent by design:**
@@ -328,10 +301,7 @@ Track what matters:
 - [ ] Vue bindings
 - [ ] Svelte bindings
 - [ ] Browser extension (for testing on any site)
-- [ ] Shopify app
 - [ ] WordPress plugin
-- [ ] Analytics dashboard
-- [ ] A/B testing built-in
 - [ ] Multi-language support
 
 ---
@@ -342,7 +312,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ```bash
 # Clone the repo
-git clone https://github.com/unlurk/unlurk.git
+git clone https://github.com/baaakgun4543/unlurk.git
 
 # Install dependencies
 pnpm install
@@ -356,21 +326,6 @@ pnpm test
 
 ---
 
-## Community
-
-- 🐦 [Twitter/X](https://twitter.com/unlurk)
-- 💬 [Discord](https://discord.gg/unlurk)
-- 📧 [Email](mailto:hello@unlurk.dev)
-
----
-
 ## License
 
-MIT © [Unlurk](https://unlurk.dev)
-
----
-
-<p align="center">
-  <strong>Stop losing 90% of your community.</strong><br/>
-  <a href="https://unlurk.dev">Get started →</a>
-</p>
+MIT
