@@ -38,11 +38,11 @@
   },
   "homepage": "https://unlurk.dev",
   "devDependencies": {
-    "@types/node": "^20.10.0",
-    "tsup": "^8.0.1",
-    "typescript": "^5.3.0",
-    "vite": "^5.0.0",
-    "vitest": "^1.0.0"
+    "@types/node": "^22.0.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.2.0",
+    "vitest": "^3.0.0"
   },
   "peerDependencies": {
     "openai": "^4.0.0",

@@ -17,6 +17,14 @@ const instances: Map<HTMLElement, UnlurkInstance> = new Map();
 export function init(config: UnlurkConfig): void {
   globalConfig = { ...globalConfig, ...config };
 
+  // Warn about API key exposure in browser
+  if (typeof window !== 'undefined' && config.apiKey && config.provider) {
+    console.warn(
+      '[Unlurk] Warning: Using API keys directly in the browser exposes them to users. ' +
+        'Consider using a backend proxy or the Unlurk Cloud service for production.'
+    );
+  }
+
   // Initialize provider based on config
   if (config.generateFn) {
     provider = {
@@ -103,6 +111,7 @@ export function enhance(
 function setupTrigger(instance: UnlurkInstance, options: EnhanceOptions): void {
   const { trigger, delay } = globalConfig;
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  let observer: IntersectionObserver | null = null;
 
   const triggerGeneration = () => {
     if (instance.isGenerating || instance.draft) return;
@@ -120,6 +129,11 @@ function setupTrigger(instance: UnlurkInstance, options: EnhanceOptions): void {
     }
   };
 
+  const handleInput = () => {
+    cancelGeneration();
+    hideDraft(instance);
+  };
+
   if (trigger === 'focus') {
     instance.input.addEventListener('focus', triggerGeneration);
     instance.input.addEventListener('blur', cancelGeneration);
@@ -128,11 +142,11 @@ function setupTrigger(instance: UnlurkInstance, options: EnhanceOptions): void {
     instance.element.addEventListener('mouseleave', cancelGeneration);
   } else if (trigger === 'auto') {
     // Generate immediately when element is in viewport
-    const observer = new IntersectionObserver(
+    observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
           triggerGeneration();
-          observer.disconnect();
+          observer?.disconnect();
         }
       },
       { threshold: 0.5 }
@@ -141,10 +155,23 @@ function setupTrigger(instance: UnlurkInstance, options: EnhanceOptions): void {
   }
 
   // Cancel if user starts typing
-  instance.input.addEventListener('input', () => {
+  instance.input.addEventListener('input', handleInput);
+
+  // Store cleanup function for proper disposal
+  instance._cleanup = () => {
     cancelGeneration();
-    hideDraft(instance);
-  });
+    observer?.disconnect();
+
+    if (trigger === 'focus') {
+      instance.input.removeEventListener('focus', triggerGeneration);
+      instance.input.removeEventListener('blur', cancelGeneration);
+    } else if (trigger === 'hover') {
+      instance.element.removeEventListener('mouseenter', triggerGeneration);
+      instance.element.removeEventListener('mouseleave', cancelGeneration);
+    }
+
+    instance.input.removeEventListener('input', handleInput);
+  };
 }
 
 async function generateDraft(instance: UnlurkInstance, options: EnhanceOptions): Promise<void> {
@@ -234,6 +261,9 @@ function hideDraft(instance: UnlurkInstance): void {
 function destroyInstance(element: HTMLElement): void {
   const instance = instances.get(element);
   if (!instance) return;
+
+  // Clean up event listeners and observers
+  instance._cleanup?.();
 
   hideDraft(instance);
 

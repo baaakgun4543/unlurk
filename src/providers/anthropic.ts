@@ -32,10 +32,29 @@ export class AnthropicProvider implements LLMProviderInterface {
     });
 
     if (!response.ok) {
-      throw new Error(`Anthropic API error: ${response.status}`);
+      const errorText = await response.text().catch(() => '');
+      if (response.status === 429) {
+        throw new Error('Anthropic rate limit exceeded. Please try again later.');
+      }
+      if (response.status === 401) {
+        throw new Error('Invalid Anthropic API key.');
+      }
+      throw new Error(`Anthropic API error: ${response.status} ${errorText}`);
     }
 
-    const data = await response.json();
-    return data.content[0]?.text?.trim() ?? '';
+    let data: unknown;
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error('Failed to parse Anthropic response');
+    }
+
+    const text = (data as { content?: { text?: string }[] })?.content?.[0]?.text;
+
+    if (typeof text !== 'string') {
+      throw new Error('Invalid response format from Anthropic');
+    }
+
+    return text.trim();
   }
 }

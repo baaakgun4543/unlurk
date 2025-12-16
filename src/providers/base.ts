@@ -4,9 +4,16 @@ export interface LLMProviderInterface {
   generate(prompt: string, context: UnlurkContext): Promise<string>;
 }
 
+// Dangerous keys that could lead to prototype pollution
+const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
 export function buildPrompt(context: UnlurkContext, customTemplate?: string): string {
   if (customTemplate) {
     return customTemplate.replace(/\{\{(\w+)\}\}/g, (_, key) => {
+      // Prevent prototype pollution
+      if (DANGEROUS_KEYS.has(key)) return '';
+      if (!Object.prototype.hasOwnProperty.call(context, key)) return '';
+
       const value = context[key];
       if (Array.isArray(value)) return value.join(', ');
       return String(value ?? '');

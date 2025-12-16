@@ -34,10 +34,30 @@ export class OpenAIProvider implements LLMProviderInterface {
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`);
+      const errorText = await response.text().catch(() => '');
+      if (response.status === 429) {
+        throw new Error('OpenAI rate limit exceeded. Please try again later.');
+      }
+      if (response.status === 401) {
+        throw new Error('Invalid OpenAI API key.');
+      }
+      throw new Error(`OpenAI API error: ${response.status} ${errorText}`);
     }
 
-    const data = await response.json();
-    return data.choices[0]?.message?.content?.trim() ?? '';
+    let data: unknown;
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error('Failed to parse OpenAI response');
+    }
+
+    const content = (data as { choices?: { message?: { content?: string } }[] })
+      ?.choices?.[0]?.message?.content;
+
+    if (typeof content !== 'string') {
+      throw new Error('Invalid response format from OpenAI');
+    }
+
+    return content.trim();
   }
 }

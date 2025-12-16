@@ -61,4 +61,6 @@ export interface UnlurkInstance {
   draft: string | null;
   isGenerating: boolean;
   destroy: () => void;
+  /** @internal */
+  _cleanup?: () => void;
 }
