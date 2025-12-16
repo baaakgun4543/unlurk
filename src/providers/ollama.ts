@@ -31,10 +31,26 @@ export class OllamaProvider implements LLMProviderInterface {
     });
 
     if (!response.ok) {
-      throw new Error(`Ollama API error: ${response.status}`);
+      const errorText = await response.text().catch(() => '');
+      if (response.status === 404) {
+        throw new Error(`Ollama model "${this.model}" not found. Run: ollama pull ${this.model}`);
+      }
+      throw new Error(`Ollama API error: ${response.status} ${errorText}`);
     }
 
-    const data = await response.json();
-    return data.response?.trim() ?? '';
+    let data: unknown;
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error('Failed to parse Ollama response');
+    }
+
+    const text = (data as { response?: string })?.response;
+
+    if (typeof text !== 'string') {
+      throw new Error('Invalid response format from Ollama');
+    }
+
+    return text.trim();
   }
 }

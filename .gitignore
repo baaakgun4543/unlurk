@@ -31,3 +31,6 @@ coverage/
 
 # Misc
 *.tgz
+
+# GitHub workflows (requires workflow scope to push)
+.github/workflows/

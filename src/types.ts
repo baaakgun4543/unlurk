@@ -1,11 +1,9 @@
 export type LLMProvider = 'openai' | 'anthropic' | 'ollama' | 'custom';
 
 export interface UnlurkConfig {
-  // Cloud mode
-  apiKey?: string;
-
-  // Self-hosted mode
+  // LLM Provider
   provider?: LLMProvider;
+  apiKey?: string;
   model?: string;
   baseUrl?: string;
 

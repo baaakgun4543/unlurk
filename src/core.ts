@@ -21,7 +21,7 @@ export function init(config: UnlurkConfig): void {
   if (typeof window !== 'undefined' && config.apiKey && config.provider) {
     console.warn(
       '[Unlurk] Warning: Using API keys directly in the browser exposes them to users. ' +
-        'Consider using a backend proxy or the Unlurk Cloud service for production.'
+        'Consider using a backend proxy for production.'
     );
   }
 
@@ -36,27 +36,6 @@ export function init(config: UnlurkConfig): void {
     provider = new AnthropicProvider(config.apiKey, config.model, config.baseUrl);
   } else if (config.provider === 'ollama') {
     provider = new OllamaProvider(config.model, config.baseUrl);
-  } else if (config.apiKey) {
-    // Cloud mode - use Unlurk API (future implementation)
-    provider = {
-      generate: async (prompt, context) => {
-        const response = await fetch('https://api.unlurk.dev/v1/generate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${config.apiKey}`,
-          },
-          body: JSON.stringify({ prompt, context }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Unlurk API error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data.draft;
-      },
-    };
   }
 
   // Inject styles
